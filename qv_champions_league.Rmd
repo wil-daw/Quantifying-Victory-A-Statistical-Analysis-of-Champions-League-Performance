@@ -1,0 +1,171 @@
+>STAT 240 Final Project
+>Group member names: Alex Kalis, Shrinaath Narasimhan, Will Dawson, Rees Neidinger
+
+>Introduction
+
+In the Champions League tournament the most prestigious, top-ranked European clubs compete in group stage and knockout rounds to determine one winner. There are seven games played by each team in the group stage. Afterwards, the top two teams in their respective group moves on to the knockout rounds (round of 16). The knockout rounds are two games, home and away, whoever wins the total score of those two games, moves on to quarter, and then semifinals, until the final which is a singular game that decides the winner. In this analysis we seek to use data on the number of goals scored, goals against,win/loss ratio, and titles to determine the factors that have a greater impact on the winning team such as defense. In this study, we wanted to research the types of attributes that a club possess that can lead them towards championships, how experience plays into the overall ability to win, what the specific clubs are that produce the highest goal scorers, and how the number of goals for and conceded might affect the win to loss ratio. By analyzing data on goals scored, goals against, and win/loss ratio, this study seeks to identify the key performance indicators that are most strongly correlated with winning the Champions League, thereby providing insights into effective team strategies.
+
+>Background
+
+Our chosen dataset was collected by an independent sports journalist/analyst. This data was collected by looking through historic Champions League data. For our data the following variables in this data are as follows. The “Club” variable is the soccer club that appears in the tourney, their coaches, their appearances, and their players. The “Player” variable is the individual player in the tourney. We’re given information about the club, appearances, goals. The “Year” variable is the year the tournament was played. The “Appearances” variable is the number of games a player or coach appears in that can be grouped by year. The “Country” variable is the name of the country, given data for each country’s number of tournaments participated in, titles, games played, games won, games drawn, games lost, goals for, goal differential. The “Participated” variable is the number of tournaments played. The “Titles” variable is the number of titles won by a given country/club. The “Played” variable is the total number of games played for a given country/club. The “Win” variable is the number of wins for a given country/team/player/coach. The “Draw” variable is the number of draws for a given country/club. The “Loss” variable is the number of losses for a given country/club. The “Goals for” variable is the total number of goals scored for the country/club. The “Goals against” variable is the number of goals scored against each country/club. The “Pts” variable is the number of points scored for each country/club, 1 point awarded for a draw, 3 points awarded for a win. The “Goal diff” variable is the number of goals subtracted by the number of goals against. 
+
+To comprehend the data and how it relates to the questions, you need to understand the structure of the tournament, and the point values associated with wins/losses. Also, you may need to know that the appearances of players count as 1 appearance regardless of how long the player is on the field. If the player is on the field for 90 minutes or 3 minutes, it counts as 1 appearance. This most likely doesn’t matter for the highest goalscorers or the best teams, but it does help with the analysis of the data, and what it means for our questions. To understand our question of “What clubs tend to produce players with more goals?”, it is important to note that the only clubs in this European competition are the top teams in their respective countries’ professional leagues. (like if the top 3 NBA teams went and played in an entirely NA tournament against the top 3 basketball teams in Canada, and Mexico). So this question is good for our goals with analyzing the tournament, but it is not correlated to other metrics outside of it. 
+
+Unusual factors that may impact the interpretation of the results is how the tournament works. Not every team plays the same number of games, because some teams are knocked out of the tournament before others. So we are assuming that the playstyles are generally staying the same in each game, which is based on their number of matches played, goals scored for and against, and their win/loss ratio. The win/loss ratio is impacted by the factor I talked about above, because a team will have a higher win/loss ratio if they get further into the competition, so maybe not going by a metric such as this might be smart. Going off of total points, and goals scored/conceded might be more indicative of certain trends. Another unusual factor could be that players move to different teams, in different countries and that is something to keep in mind when we are finding out which clubs produce the highest goalscorers. Could be an unusual datapoint if a player is in the top scorers for multiple teams, however we would just need to make a note of it for the analysis and probably see which team they played for first. 
+
+We intend to show the difference in success among teams with varying factors such as stronger defenses (indicated by lower goals allowed), strong offense (indicated by more goals scored), and the success of teams with strong defense and weak offense and vice versa. We will determine if a team is successful based on the win to loss ratio, and how those varying factors coincide with that. There are 530 clubs that are observed in the dataset (will see 530 data points on linear models and residual graphs). Our findings showed that scoring a goal, does increase your team's likelihood of winning, and decreases the opposing team's chances of winning, by a significant amount.
+
+>Cite the source of your data.
+
+“A Host of Comprehensive Sports Datasets for Research, Analysis, Data Modeling, Data-Visualization, Predictions, Machine-Learning ETC.” Sports, sports-statistics.com/sports-data/sports-data-sets-for-data-modeling-visualization-predictions-machine-learning/. Accessed 9 Apr. 2024.
+
+
+
+```{r, echo=FALSE, include=FALSE}
+library(tidyverse)
+library(lubridate)
+source("../../scripts/viridis.R")
+library(data.table)
+library(readxl)
+library(modelr)
+options(warn = -1)
+club_data = read_excel("../../data/AllTimeRankingByClub.xlsx")
+#country_and_club = read_csv("../../data/AllTimeRankingByCountry.csv")
+#player_goals = read_csv("../../data/PlayerGoalTotals.csv")
+#player_appearances = read_csv("../../data/PlayerAppearTotals.csv")
+```
+
+>Analysis
+
+```{r, include=FALSE}
+
+club_data <- mutate(club_data, WinLoss = Win/(Win + Loss),
+                    averageGoalsScored = Goals_For/Played,
+                    averageGoalsConceded = Goals_Against/Played)
+
+
+```
+
+```{r, echo=FALSE, message=FALSE}
+#Offense
+ggplot(club_data, aes(x = averageGoalsScored, y = WinLoss)) + 
+  geom_point() +
+  ylab("Win/Loss ratio") +
+  xlab("Average goals scored per game") +
+  ggtitle("Average goals per game for a team, and their Win/Loss ratio in the Champion's League") +
+  geom_smooth(method = "lm")
+```
+
+
+Based on the data, here is the equation for the regression model relating the team's average goals scored vs the team's win/(win+loss) ratio. 
+
+<br>
+<br>
+<center>WinLoss = 0.28726 * averageGoalsScored + 0.02522</center>
+<br>
+<br>
+
+However, to be sure we are confident about the increase (0.28726), we shall conduct a hypothesis test with a significance level = .05. For our Null Hypothesis, it states that there is not a significant linear relationship between the average number of goals scored per game by a team and its win/loss ratio. (θ = 0). For our Alternative Hypothesis, it states that there is a significant linear relationship between the average number of goals scored per game by a team and its win/loss ratio. (θ != 0) We found that for an increase in 1 average goal scored, we see an expected increase in win percentage by 28.7 percent (t = 23.622, SE = .01216, p = 2e-16). Since the p-value is much less than .05, we would reject the null hypothesis and there is evidence against θ = 0 (No significant linear relationship between average number of goals scored per game by a team and its win/loss ratio). 
+
+
+```{r, echo=FALSE, include=FALSE}
+
+#Offense
+summary(lm(WinLoss ~ averageGoalsScored, club_data))
+
+```
+
+
+>The fewer goals a team concedes, generally,  the higher their win/loss ratio, but this also depends on how many goals they make, even if a team has a good defense, it doesn’t completely make up for a better offense.
+
+```{r, echo=FALSE, message=FALSE}
+#Defense
+ggplot(club_data, aes(x = averageGoalsConceded, y = WinLoss)) + 
+  geom_point() +
+  xlab("Average goals against per game") +
+  ylab("Win/Loss ratio") +
+  ggtitle("Average goals against per game for a team, and their Win/Loss ratio, in the Champion's League") +
+  geom_smooth(method = "lm")
+```
+
+
+
+Based on the data, here is the equation for the regression model relating the team's average goals conceded vs the team's win/(win+loss) ratio.
+
+
+<br>
+<br>
+<center>WinLoss = -0.127955 * averageGoalsConceded + 0.575292</center>
+<br>
+<br>
+
+However, to be sure we are confident about the decrease in win percentage (-0.127955), we shall conduct a hypothesis test with a significance level = .05. For our Null Hypothesis, it states that there is no significant linear relationship between the average number of goals conceded per game by a team and its win/loss ratio. (θ = 0). For our Alternative Hypothesis, it states that there is a significant linear relationship between the average number of goals conceded per game by a team and its win/loss ratio. (θ != 0) We found that for an increase in 1 average goal conceded, we see an expected decrease in win percentage by 12.8 percent (t = -15.57, SE = 0.0082, p = 2.2e-16). Since the p-value is much less than .05, we would reject the null hypothesis, that is, there is not enough evidence to suggest that there is no significant correlation between the average number of goals conceded per game by a team and its win/loss ratio. Our alternative hypothesis is correct, and there is a strong significant correlation between a team's average number of goals conceded and their win/loss ratio.
+
+
+
+
+
+```{r, echo=FALSE, include=FALSE}
+~~
+#Defense
+summary(lm(Win_Loss ~ averageGoalsConceded, club_data))
+
+```
+
+```{r, echo=FALSE}
+#Scoring goals
+
+df_lm = lm(WinLoss ~ averageGoalsScored, data = club_data)
+resid_data = club_data %>%
+  add_residuals(df_lm)
+
+#Residual data
+ggplot(resid_data, aes(x = averageGoalsScored, y = resid)) +
+  geom_point() +
+  labs(x = "Average goals scored per game", y = "Residuals") +
+  ggtitle("Residuals plotted of a team's average goals scored per game") +
+  geom_hline(aes(yintercept = 0), color = 'red', linetype = 'dashed')
+```
+
+
+
+We assumed that there is a linear relationship between goals scored and goals conceded, and that once a team gets a goal scored on it, they continue to play the same during the rest of the match.
+
+
+With a linear model there are also a number of assumptions made just from the nature of the model itself, such as the true form of the model is linear, and not another pattern with a different slope. It is also assumed that the errors are normally distributed around 0; and that they should be symmetric around 0, and tend to be close to 0. Lastly, we assume that the errors have constant variance.
+Our residual plot of our data shows that the majority of team's data falls within an equal distance from the linear model, with a few exceptions that are explainable through our background knowledge of the data set. The line going downwards from 0 to 2 represents teams that haven't won any games but have scored goals in the tournament.
+
+```{r echo=FALSE }
+#Conceding goals
+
+df_lm = lm(WinLoss ~ averageGoalsConceded, data = club_data)
+resid_data = club_data %>%
+  add_residuals(df_lm)
+
+#Residual data
+ggplot(resid_data, aes(x = averageGoalsConceded, y = resid)) +
+  geom_point() +
+  ggtitle("Residuals plotted of a team's average goals scored against them") +
+  xlab("Average goals conceded per game") +
+  ylab("Residuals") +
+  geom_hline(aes(yintercept = 0), color = 'red', linetype = 'dashed')
+```
+
+
+
+Here, our residual plot for goals scored against a team assumes that a team continues to play the same once one goal is scored against them, and the datapoints are independent of one another. A team may get more offensive or make riskier plays to try to score a goal, and this graph assumes that they continue to play the same tactics for each game.
+Our residual plot of our data shows that the majority of team's data falls within an equal distance from the linear model, with a few exceptions that are explainable through our background knowledge of the data set. The line going downwards from 0 to 7.5 represents teams that haven't won any games and have had many goals scored against them in the tournament.
+
+
+
+Scoring more goals per game increases a team's likelihood of winning more games.
+
+
+
+>Discussion: 
+
+We interpreted the results as the fewer goals a team concedes, generally,  the higher a team's win/loss ratio, but this also depends on how many goals they make, even if a team has a good defense, it doesn’t completely make up for a better offense. Scoring more goals per game increases a team's likelihood of winning more games. The data has shortcomings in that it may be skewed when a team is in a high-scoring game, it could bring their average goals against down, despite the team winning. Some questions that we may ask in the future are which players have contributed the most to their team’s average goals for, and which country has the most high-scoring players. Also we may find out which teams are most likely to win it based on their average goals for and against, paired with their number of titles. Maybe we could find the probability of each team winning based on those values. We determined graphically that there is a moderately strong positive correlation between goals scored and the clubs win to loss ratio. To conclude, average goals for is heavily indicative of a team having a larger win to loss ratio (p-value of 0.0035), and average goals against is also heavily indicative of a team having a larger win/loss ratio (p-value of 0.0048).
+
+>References
+
+^[https://bleacherreport.com/articles/2819840-uefa-champions-league-explained-how-the-tournament-works]
