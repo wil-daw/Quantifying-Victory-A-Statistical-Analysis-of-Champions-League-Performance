@@ -1,5 +1,5 @@
->STAT 240 Final Project
->Group member names: Alex Kalis, Shrinaath Narasimhan, Will Dawson, Rees Neidinger
+>Quantifying Victory: A Statistical Analysis of Champions League Performance
+>William Dawson
 
 >Introduction
 
